@@ -5,10 +5,13 @@ public class PlayerMotor : MonoBehaviour
 {
     #region Properties
     [SerializeField] private Camera _camera;
+    [SerializeField] private float _cameraRotationLimit = 85f;
 
     private Vector3 _velocity = Vector3.zero;
     private Vector3 _rotation = Vector3.zero;
-    private Vector3 _cameraRotation = Vector3.zero;
+    private float _cameraRotationX = 0f;
+    private float _currentCameraRotationX = 0f;
+    private Vector3 _thrusterVelocity = Vector3.zero;
 
     private Rigidbody _rb = null;
     #endregion Properties
@@ -29,9 +32,14 @@ public class PlayerMotor : MonoBehaviour
         _rotation = rotation;
     }
 
-    public void RotateCamera(Vector3 cameraRotation)
+    public void RotateCamera(float cameraRotationX)
     {
-        _cameraRotation = cameraRotation;
+        _cameraRotationX = cameraRotationX;
+    }
+
+    public void ApplyThruster(Vector3 thrusterVelocity)
+    {
+        _thrusterVelocity = thrusterVelocity;
     }
 
     private void FixedUpdate() // More acces on physics than Update. Do not depend on the framerate
@@ -46,12 +54,20 @@ public class PlayerMotor : MonoBehaviour
         {
             _rb.MovePosition(_rb.position + _velocity * Time.fixedDeltaTime); // _rb.position or transform.position are exactly the same in that precise case
         }
+
+        if (_thrusterVelocity != Vector3.zero)
+        {
+            _rb.AddForce(_thrusterVelocity * Time.fixedDeltaTime, ForceMode.Acceleration); // Add a force to the rigid body
+        }
     }
 
     private void PerformRotation()
     {
         _rb.MoveRotation(_rb.rotation * Quaternion.Euler(_rotation)); // MoveRotation work with Quaternion and not Vector.
-        _camera.transform.Rotate(-_cameraRotation);
+
+        _currentCameraRotationX += _cameraRotationX;
+        _currentCameraRotationX = Mathf.Clamp(_currentCameraRotationX, -_cameraRotationLimit, _cameraRotationLimit); // We clam the value of currentCameraRotation to fit in the defined domain
+        _camera.transform.localEulerAngles = new Vector3(-_currentCameraRotationX, 0f, 0f);
     }
     #endregion Methods
 }
