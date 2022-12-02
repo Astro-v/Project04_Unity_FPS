@@ -5,6 +5,7 @@ public class PlayerSetup : NetworkBehaviour
 {
     #region Properties
     [SerializeField] private Behaviour[] _componentsToDisable;
+    [SerializeField] private string _remoteLayerName = "RemotePlayer";
     
     private Camera _sceneCamera = null;
     #endregion Properties
@@ -14,11 +15,8 @@ public class PlayerSetup : NetworkBehaviour
     {  
         if (!isLocalPlayer) // If the player is not the local player, it is the remote player
         {
-            // We loop over the differents componant to disable it if the player correspond to the remote player
-            for (int i = 0; i < _componentsToDisable.Length; i++)
-            {
-                _componentsToDisable[i].enabled = false;
-            }
+            DisableComponents();
+            AssignRemoteLayer();
         }
         else
         {
@@ -27,6 +25,20 @@ public class PlayerSetup : NetworkBehaviour
             {
                 _sceneCamera.gameObject.SetActive(false);
             }
+        }
+    }
+
+    private void AssignRemoteLayer()
+    {
+        gameObject.layer = LayerMask.NameToLayer(_remoteLayerName);
+    }
+
+    private void DisableComponents()
+    {
+        // We loop over the differents componant to disable it if the player correspond to the remote player
+        for (int i = 0; i < _componentsToDisable.Length; i++)
+        {
+            _componentsToDisable[i].enabled = false;
         }
     }
 
