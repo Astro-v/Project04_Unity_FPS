@@ -28,14 +28,24 @@ public class PlayerShoot : NetworkBehaviour
         }
     }
 
+    [Client]
     private void Shoot()
     {
         RaycastHit hit;
 
         if (Physics.Raycast(_camera.transform.position, _camera.transform.forward, out hit, _weapon._range, _mask)) // Here we shoot the raycast and it return true if the raycast touch something
         {
-            Debug.Log("Object touché : " + hit.collider.name);
+            if (hit.collider.tag == "Player")
+            {
+                CmdPlayerShot(hit.collider.name);
+            }
         }
+    }
+
+    [Command] // Send to the server and all the instance will receive data
+    private void CmdPlayerShot(string playerName) // Cmd to notify that we are in a command
+    {
+        Debug.Log(playerName + " has been touched.");
     }
     #endregion Methods
 }
